@@ -1,5 +1,5 @@
 'use strict';
-var scene, camera, renderer;
+var scene, camera, renderer, sideRenderer;
 var geometry, material, mesh;
 
 function init() {
@@ -15,9 +15,14 @@ function init() {
   scene.add( mesh );
 
   renderer = new THREE.WebGLRenderer();
-  renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.setSize( window.innerWidth-320, window.innerHeight );
+  
+  // the side renderer is used to diplay the objective in a corner
+  sideRenderer = new THREE.WebGLRenderer();
+  sideRenderer.setSize( 300, 300 );
 
-  document.body.appendChild( renderer.domElement );
+  document.getElementById('main-renderer-target').appendChild( renderer.domElement );
+  document.getElementById('side-renderer-target').appendChild( sideRenderer.domElement );
 }
 
 function animate() {
@@ -31,3 +36,5 @@ function animate() {
 
 init();
 animate();
+// it is enough to render the side renderer once
+sideRenderer.render( scene, camera );
