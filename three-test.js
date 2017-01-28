@@ -3,6 +3,10 @@ var scene, camera, renderer, sideRenderer;
 var geometry, material, mesh;
 var startTime;
 
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 var KEYS = Object.freeze({
   W:{
     rotateX: -1,
@@ -49,18 +53,57 @@ document.onkeypress = function(event) {
     default:
       currentKey = KEYS.NONE;
   }
-}
+};
 
 document.onkeyup = function() {
   currentKey = KEYS.NONE;
-}
+};
 
-var boxes = [
-  {x:0, y:0, z:0},
-  {x:1, y:0, z:0},
-  {x:2, y:0, z:0},
-  {x:2, y:1, z:0}
-];
+var riddles = [
+  [ // classic L-shape
+    {x:0, y:0, z:0},
+    {x:1, y:0, z:0},
+    {x:2, y:0, z:0},
+    {x:2, y:1, z:0}
+  ],
+  [
+    {x:0, y:1, z:0},
+    {x:1, y:2, z:0},
+    {x:2, y:-1, z:0},
+    {x:2, y:1, z:0},
+    {x:0, y:0, z:0},
+    {x:2, y:1, z:0},
+    {x:2, y:0, z:0},
+    {x:2, y:1, z:1}
+  ],
+  [
+    {x:0, y:1, z:0},
+    {x:1, y:1, z:0},
+    {x:2, y:1, z:0},
+    {x:2, y:0, z:0},
+    {x:2, y:-1, z:0},
+    {x:3, y:1, z:0},
+    {x:0, y:-1, z:0},
+    {x:-1, y:0, z:0},
+    {x:-2, y:0, z:-1},
+    {x:-2, y:1, z:-1},
+    {x:-2, y:0, z:-1},
+    {x:-3, y:1, z:-2},
+    {x:-3, y:0, z:-2},
+  ],
+  [
+    {x:-1, y:0, z:0},
+    {x:0, y:1, z:0},
+    {x:0, y:1, z:-1},
+    {x:0, y:1, z:-2},
+    {x:0, y:1, z:-1},
+    {x:1, y:2, z:0}
+  ],
+]
+
+// TODO: add levels (multiple riddles without refresh)
+// TODO: add visual timers
+var boxes = riddles[getRandomInt(0,riddles.length-1)];
 
 var gameEnded = false;
 // victory is achieved when the sum of the x+y angle differences is below this threshold
