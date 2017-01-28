@@ -1,6 +1,7 @@
 'use strict';
 var scene, camera, renderer, sideRenderer;
 var geometry, material, mesh;
+var startTime;
 
 var KEYS = Object.freeze({
   W:{
@@ -54,17 +55,54 @@ document.onkeyup = function() {
   currentKey = KEYS.NONE;
 }
 
+var boxes = [
+  {x:0, y:0, z:0},
+  {x:1, y:0, z:0},
+  {x:2, y:0, z:0},
+  {x:2, y:1, z:0}
+];
+
+var gameEnded = false;
+// victory is achieved when the sum of the x+y angle differences is below this threshold
+var victoryThreshold = 0.05;
+function checkVictoryCondition(){
+  //NB: threejs rotation is in radians, and it does not clip to [0,PI], so we need to do that manually
+  var rotationX = scene.rotation.x;
+  var rotationY = scene.rotation.y;
+  
+  var xFullTurns = Math.floor( rotationX/(Math.PI*2) );
+  var yFullTurns = Math.floor( rotationY/(Math.PI*2) );
+  
+  var normalizedRotationX = rotationX - xFullTurns*(Math.PI*2);
+  var normalizedRotationY = rotationY - yFullTurns*(Math.PI*2);
+  
+  var diffX = normalizedRotationX<Math.PI? normalizedRotationX : (Math.PI*2)-normalizedRotationX;
+  var diffY = normalizedRotationY<Math.PI? normalizedRotationY : (Math.PI*2)-normalizedRotationY;
+
+  var difference = diffX+diffY;
+  if (!gameEnded && difference < victoryThreshold) {
+    var gameDuration = new Date() - startTime;
+    //TODO: you're better than this, man...
+    alert('Victory! You\'ve completed the puzzle in '+ gameDuration/1000 + ' seconds!');
+    gameEnded = true;
+    currentKey = KEYS.NONE;
+  }
+  console.log(diffX, diffY);
+}
+
 function init() {
   scene = new THREE.Scene();
 
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
   camera.position.z = 1000;
 
-  geometry = new THREE.BoxGeometry( 200, 200, 200 );
-  material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
-
-  mesh = new THREE.Mesh( geometry, material );
-  scene.add( mesh );
+  boxes.forEach(function(box){
+    geometry = new THREE.BoxGeometry( 200, 200, 200 );
+    material = new THREE.MeshBasicMaterial( { color: 0xff0000, wireframe: true } );
+    mesh = new THREE.Mesh( geometry, material );
+    mesh.position.set( box.x*200, box.y*200, box.z*200 );
+    scene.add( mesh );
+  });
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize( window.innerWidth-320, window.innerHeight );
@@ -77,17 +115,25 @@ function init() {
   document.getElementById('side-renderer-target').appendChild( sideRenderer.domElement );
 }
 
-
 function animate() {
   requestAnimationFrame( animate );
 
-  mesh.rotation.x += 0.01 * currentKey.rotateX;
-  mesh.rotation.y += 0.01 * currentKey.rotateY;
+  scene.rotation.x += 0.01 * currentKey.rotateX;
+  scene.rotation.y += 0.01 * currentKey.rotateY;
 
   renderer.render( scene, camera );
+  checkVictoryCondition();
+}
+
+// turning the scene randomly initializes the puzzle
+function turnSceneRandomly(){
+  scene.rotation.x = Math.random()*Math.PI*2;
+  scene.rotation.y = Math.random()*Math.PI*2;
 }
 
 init();
-animate();
 // it is enough to render the side renderer once
 sideRenderer.render( scene, camera );
+turnSceneRandomly();
+animate();
+startTime = new Date();
